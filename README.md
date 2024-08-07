@@ -1,11 +1,11 @@
 # Projects
 Repository for my projects
 
-## [Power BI](Power%20BI/README.md)
+## [Power BI](Power%20BI)
 
 ## Python
 
-## [R](R/README.md)
+## [R](R)
 
-## [SQL](SQL/README.md)
+## [SQL](SQL)
 
