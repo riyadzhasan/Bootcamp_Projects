@@ -1,7 +1,7 @@
 # Projects
 Repository for my projects
 
-## [Power BI](Power%20BI)
+## [PowerBI](PowerBI)
 
 ## [Python](Python)
 
