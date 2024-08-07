@@ -1,3 +1,3 @@
 # Power BI Projects
 
-### [Data Viz Ethnicity](Data%20Viz%20Ethnicity)
+### [Data Viz Ethnicity](Data_Viz_Ethnicity)
