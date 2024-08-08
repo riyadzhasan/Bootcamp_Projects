@@ -1,0 +1,297 @@
+---
+title: "Titanic Data Visualisation R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+### This Notebook outlines the process for the visualisation of the cleaned titanic dataset
+
+Installs and loads tidyverse (contains ggplot2) and plotly. This can be performed in the console but is included in the notebook for demonstrative purposes
+
+``` {r Installs and loads packages}
+install.packages("tidyverse")
+install.packages("plotly")
+library(tidyverse)
+library(plotly)
+```
+
+We now assign the cleaned titanic data onto a dataframe
+
+``` {r writes dataset onto dataframe}
+titanic_data <- read.csv("Cleaned_Titanic_Data.csv")
+```
+
+### Plots
+
+We can now begin creating visualisations. 
+
+#### Bar plot of survival counts of passengers
+
+Firstly, we create a bar plot showing the counts of how many passengers survived and how many did not. We tell R we want to use the x axis as the survived column from the titanic_data dataframe. We want to create a bar plot so we use geom_bar(). We use the fill function to group the counts by sex i.e. how many of the counted passengers were male or female. We use the scale_x_discrete function and labs function to create appropriate legend labels, and titles and axis names respectively. We assign a colour palette for the grouped category using scale_fill_brewer. We use theme_bw() to use a default aesthetic theme for the chart design/layout and the following section of code to remove the default axis label elements respectively.
+
+``` {r Bar plot of survival counts}
+survived_bar <- ggplot(titanic_data, aes(x = as.factor(survived))) +
+  geom_bar(aes(fill=sex)) + 
+  scale_fill_brewer(palette = "Pastel1") +
+  scale_x_discrete(labels = c('Died','Survived')) +
+  labs(title="Count of Survived Passengers",
+       subtitle="From Titanic Dataset",
+       x="Survival Status",y="Total") +
+  theme_bw()+
+  theme(axis.title.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank()
+  )
+plot(survived_bar)
+```
+This chart shows that there were more passengers that died than survived. It also shows that of those who survived, the majority were female. Whilst of those who died, the majority were male. This section of code can be modified to group by other categories such as age groups to investigate other aspects of the data
+
+#### Age histogram and density chart
+
+Next, we want to create a histogram to show the distribution of the passengers. We tell R we want to set the age column from the titanic_data dataframe as the x variable. We use geom_histogram(). The binwidth is set to 5 so the age groups will be 5 years wide. We then assign colours for the bars and bar borders. We assign appropriate axis and title labels.
+
+```{r age histogram}
+age_hist <- ggplot(titanic_data, aes(x = age)) +
+  geom_histogram(binwidth = 5, fill = "firebrick", color = "black") +
+  #geom_density(fill="firebrick", color="black", alpha=0.8) +
+  labs(title="Age Distribution of Passengers",
+       subtitle="from Titanic Dataset",
+       x="Age Distribution",
+       y="Density"
+  )
+plot(age_hist)
+```
+We can also use the exact same parameters but change geom_histogram to geom_density to obtain a density chart. A density chart is essentially a smoothed histogram or a histogram with infinite granularity, hence why the same parameters can be used. 
+
+```{r age density chart}
+age_dens <- ggplot(titanic_data, aes(x = age)) +
+  geom_density(fill="firebrick", color="black", alpha=0.5) +
+  labs(title="Age Distribution of Passengers",
+       subtitle="from Titanic Dataset",
+       x="Age Distribution",
+       y="Density"
+  )
+plot(age_dens)
+```
+By looking at the age histogram and density plot, we can see the young adults were the majority age group of the passengers, specifically 20-30. After approximately 30 years old, as age increases the density decreases. Thus elderly adults were not as common. Furthemore, 0-15 age group was also not as common, but there was a small increase from 0-5 i.e. babies/toddlers were more common than children on the Titanic.
+
+#### Boxplot and Violin plot
+
+Boxplots show various useful statistical information about a numerical varaible across specified groups, including the median, upper and lower percentiles and outliers. Violin plots are a variation of boxplots that also provide the distribution of data within the specified groups.
+
+To create a boxplot, we assigne survived and age to the x and y variables respectively and use geom_boxplot(). We also use the geom_jitter() function to show the size and distribution of data for each group. We then assign label, title and axis names.
+
+
+```{r age vs survived boxplot}
+box <- ggplot(titanic_data, aes(x = as.factor(survived), y = age, fill=as.factor(survived))) +
+  geom_boxplot() +
+  geom_jitter(color="black", size=0.3, alpha=0.5) +
+  scale_fill_brewer(palette="Accent") +
+  scale_x_discrete(labels = c('Died','Survived')) +
+  labs(title="Age Distribution by Survival Status",
+       y="Age",
+       x="Survived"
+  )
+plot(box)
+```
+For the violin chart, we group by passenger class to see if there are any further insights that can be obtained
+
+```{r age vs survived violin}
+violin <- ggplot(titanic_data, aes(x = as.factor(survived), y = age, fill=as.factor(pclass))) +
+  geom_violin() +
+  scale_fill_brewer(palette = "Pastel1") +
+  scale_x_discrete(labels = c('Died','Survived')) +
+  labs(title="Age Distribution by Survival Status",
+       y="Age",
+       x="Survived"
+  )
+plot(violin)
+```
+The violin chart shows distribution which is useful here because we can see that the age distribution is more weighted towards a certain age in 3rd class. Here there was a much higher degree of the passengers were young adults i.e. in their 20s or 30s. Whereas for 1st and 2nd class, the age distributions were more balanced.
+
+#### Stacked bar plot of passengers from each class, separated by gender
+
+Now that we have an understanding of the functions we can use to create various charts and manipulate or add features to them, only new functions will be explained.
+
+geom_text() allows us to add data labels. Here we use after_stat(count) which means we want to show the count as data labels. We use position=position_stack() so the data labels go to the correct places in the stacked bar plot. Vjust=0.5 is used so the data labels are positioned centrally (0=left and 1=right)
+
+Here, coord_flip() is used so we can get a horizontal bar chart.
+
+```{r horizontal bar plot}
+bar_class <- ggplot(titanic_data, aes(x = as.factor(pclass), fill=sex)) +
+  geom_bar(width=0.5) +
+  geom_text(aes(label = after_stat(count)), stat = "count", colour = "black", position = position_stack(vjust=.5)) +
+  scale_fill_brewer(palette = "Pastel2") +
+  labs(title="Count of Passengers by Class",
+       y="Total",
+       x="Passenger Class"
+  ) +
+  coord_flip()
+plot(bar_class)
+```
+This plot shows that majority of passengers were in 3rd class, followed by 1st then 2nd class. In all 3 classes, there were more males than females. But whilst in 3rd class male was an overwhelming majority, in 1st and 2nd classes it was much closer
+
+#### Bar plot of count of passengers by embarkation point
+
+Here geom_label() is used. It is identical to geom_text() except it outputs the data label inside a box. As such it uses the same parameters
+
+```{r bar plot of passenger count by embarkation point}
+bar_emb <- ggplot(titanic_data, aes(x = as.factor(embarked), fill=as.factor(embarked))) +
+  geom_bar(width=0.5, show.legend = FALSE) +
+  geom_label(aes(label = after_stat(count)), stat = "count", vjust=0.5, colour = "white")+
+  labs(title="Count of Passengers by Embarkation Point",
+       y="Count",
+       x="Embarkation point"
+  )
+plot(bar_emb)
+```
+Here we can see the majority of passengers entered the titanic on S, i.e. Southampton
+
+####Scatter plot of age vs fare
+
+Scatter plots are used to determine if there is a relationship/correlation between two variables. For this scatter plot, age is assigned as x variable whilst fare price is assigned as y. Every point is one passenger.
+
+geom_point() lets us create a scatter plot. size= determines the size of each point. Here we will group each point by gender so color=sex is used.
+
+geom_smooth() adds a linear trend line to the scatter plot, allowing us to determine if there is a relationship and the degree of correlation. formula = y ~ x, method=lm specifies we want to add a trendline using the linear model smoothing method for the relationship of x to y. se=TRUE lets us show the confidence interval of the linear trend line.
+
+```{r scatter age vs fare}
+ggplot(titanic_data, aes(x = age, y = fare, color=sex)) +
+  geom_point(size=1) +
+  geom_smooth(formula = y ~ x, method=lm, color="magenta",se=TRUE) +
+  scale_color_brewer(palette="Accent") +
+  labs(title="Age vs. Fare by Sex",
+     y="Fare",
+     x="Age"
+  )
+```
+This graph shows there is weak positive correlation i.e as ages goes up, fare price goes up. If we refer back to the violin plot scatter graph, we noticed that for 1st class, there were relatively more older passengers compared to 3rd class, where there were relatively less old passengers but much more younger passengers. If we investigate the fare price grouped by passenger class, we can see which class has the highest average fare price and if so this could provide the reason why there is weak correlation between age and fare price. Further analysis can be performed to investigate this hypothesis.
+
+
+#### Interactive scatter plot of age vs fare, faceted by pclass
+
+Here, the plotly library is utilised as we use ggplotly() to add interactivity to our plot. This will allow the user to hover over different observations to see further information.
+
+We also use facet_wrap(). This creates small multiples to separate the same chart by different categories, in this case pclass (passenger class). This allows us to investigate differences more clearly.
+
+```{r Interactive scatter age vs fare, faceted by pclass}
+ggplotly(
+  ggplot(titanic_data, aes(x = age, y = fare, color=as.factor(survived))) +
+  scale_color_brewer(palette = "Pastel1")+
+  geom_point(size=0.5) +
+  facet_wrap( ~ pclass) +
+  labs(title="Age vs. Fare by Survival Status",
+       subtitle="1st Class Survives more",
+       y="Fare",
+       x="Age"
+  )+
+  theme_bw()
+)
+```
+This faceted scatter plot shows us that our hypothesis made after the previous scatter plot was correct: fare prices for 1st class are higher than 2nd and 3rd class, and generally the age distribution of passengers in 1st class is more balanced than 2nd and 3rd class where there are more middle-aged and elderly passengers. This shows why there is a weak correlation between age and fare price.
+
+This plot was also coloured by survival status, where we can see the proportion of datapoints where a passenger survived i.e. survived=1 is a lot higher for 1st class than 2nd and 3rd class.
+
+
+#### Interactive 100% stacked Bar Plot of Survival Status by Passenger Class
+
+This analysis is investigated further with a 100% stacked bar plot to see more clearly the counts of passengers in each passenger class, separated by their survival status. 100% bar plots aim to show the distribution of a certain variable in a specific category, in this case the distribution of survived vs died passengers in each passenger class, rather than total counts.
+
+To do this, we use position="fill" within geom_bar()
+
+```{r interactive plot of passenger class, by survival status}
+ggplotly(
+  ggplot(titanic_data, aes(x = pclass, fill = as.factor(survived))) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values=c("#E69F00", "#56B4E9"))+
+  labs(title="Survival Proportions by Passenger Class",
+       x="Passenger Class",
+       y="Proportion",
+       fill = "Survived"
+  )+
+  theme_bw()
+)
+```
+Indeed, we can see that 1st class had more passengers that survived than died, with 63% surviving and 37% dying. Meanwhile 2nd and 3rd class had more passengers that died than survived. The lower the passenger class, the worse the survival rate.
+
+
+#### Clustered bar chart of count of passengers embarkation and whether they died or survived
+
+Similar to a stacked bar chart, a clustered bar chart displays multiple categories in the same chart.
+
+To do this, we use position="dodge" within geom_bar()
+
+Here, scale_fill_manual is used which allows us to manually assign a colour to each of the categories
+
+```{r clustered bar chart of passngers in each embark point, separated by survival status}
+ggplotly(
+  ggplot(titanic_data, aes(x = embarked, fill = as.factor(survived)))+
+    geom_bar(position="dodge") +
+    labs(title="Survival Counts by Embarkation Point",
+         x="Embarkation",
+         y="Count",
+         fill = "Survived",
+    )+
+    scale_fill_manual(values = c("0" = "red", "1" = "green"))
+)
+```
+Here we can see that for passengers who arrived via C (Cherbourg), there were more that survived than died. For Q (Queenstown) more died than survived but it was close. Meanwhile for S (Southampton) we can see that almost half as many died than survived.
+
+
+#### Age vs fare by survival status with embarkation point faceted
+
+This plot combines several earlier plots in one.
+
+Here, scale_color_manual is used to also manually assign the legend labels for the survived status with labels=c(). In the dataset, survived is a factor data type with 0 and 1, where 0 is died and 1 is survived. By renaming it, it makes the plot easier to understand for viewers.
+
+```{r scatter plot of age vs fare, separated by colour, faceted by embarkation point}
+ggplot(titanic_data, aes(x = age, y = fare, color = as.factor(survived))) +
+  geom_point(size = 0.5) +
+  scale_color_manual(values = c("0" = "red", "1" = "green"), labels = c("0" = "No", "1" = "Yes")) +
+  facet_wrap(survived ~ embarked) +
+  labs(title="Age vs. Fare by Survival Status and Embarked",
+       x="Age",
+       y="Fare",
+       color = "Survived"
+  )
+```
+This plot is separated by survival status (2 categories) and embarkation point (3 categories), which creates 6 small multiples. It shows the same conclusions as previous plots as this plot is essentially combining those into one plot.
+
+### Interactive plot using plotly
+
+The above graphs have been created using ggplot from the ggplot2 package, itself obtained from the tidyverse package collection. 
+
+Here we create a graph using plot_ly from the plotly package
+
+#### Calculate counts and percentages for interactive plot
+```{r}
+titanic_summary <- titanic_data %>%
+  group_by(pclass, survived) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = count / sum(count) * 100)
+```
+
+#### Convert to data frame
+```{r}
+titanic_summary <- as.data.frame(titanic_summary)
+```
+
+#### Create the interactive stacked bar plot
+```{r}
+plot <- plot_ly(titanic_summary, 
+                x = ~pclass, 
+                y = ~percentage, 
+                type = 'bar', 
+                color = ~as.factor(survived),
+                text = ~paste('Survived:', survived, '<br>Percentage:', round(percentage, 2), '%'),
+                hoverinfo = 'text',
+                textposition = 'auto') %>%
+  layout(barmode = 'stack',
+         xaxis = list(title = 'Passenger Class'),
+         yaxis = list(title = 'Percentage'),
+         title = 'Survival Proportions by Passenger Class',
+         legend = list(title = list(text = 'Survived')))
+plot
+```
+This is the same graph as the survival proportions plot, but made using plotly. This is to demonstrated the various options we have available to us to create interesting visualisations

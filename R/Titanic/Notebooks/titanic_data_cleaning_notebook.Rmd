@@ -1,0 +1,93 @@
+---
+title: "Titanic Dataset R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+Installs and loads dplyr package. This can be performed in the console but for demonstrative purposes it is included in the script
+
+```{r Installs and loads dplyr package}
+install.packages("dplyr")
+library(dplyr)
+```
+
+Writes the dataset onto a dataframe. The dataset must be uploaded to the workspace beforehand.
+
+```{r Writes uploaded dataset onto a dataframe}
+titanic_data <- read.csv("Titanic-Dataset.csv")
+```
+
+We use multiple functions to give us some basic insights and overview into the data. View displays the entire dataset in a tabular format. Summary provides key statistical information about each column such as the mean, median, max and min values. str gives us the data type of each column.
+
+```{r use functions to give overview of the dataset}
+head(titanic_data)
+summary(titanic_data)
+str(titanic_data)
+```
+
+Shows the column names of the dataset 
+
+```{r views and changes column names to lowercase}
+names(titanic_data)
+```
+
+```{r Now transforms all column names to lowercase for consistency/standardization}
+names(titanic_data) <- tolower(names(titanic_data))
+names(titanic_data)
+```
+
+This section returns the number of missing values in each column. 
+```{r returns number of missing columns}
+colSums(is.na(titanic_data)) 
+```
+We can see that the only column with missing values is age, with 177 missing values. To address this, we replace each of the missing age values with the median age value. This is done by using dplyr's mutate function in conjunction with an ifelse statement where if the value in the age column is missing, then replace it with the median age value, else keep it as is
+
+```{r shows median age and overrides the missing age values}
+median(titanic_data$age, na.rm = TRUE)
+titanic_data <- titanic_data %>%
+  mutate(age = ifelse(is.na(age), median(age, na.rm = TRUE), age))
+```
+
+The median age was 28 so all 177 missing values in the age column were replaced with 28. Now we use the colSums function again to ensure all missing values were replaced
+
+```{r shows missing values}
+colSums(is.na(titanic_data)) #verified all missing data has been filled
+```
+As we can see, there are no more missing values so this operation was successful
+
+We convert appropriate columns to factor data type, to ensure these columns are properly represented as categorical data in statistical analysis
+
+```{r converts these columns to factor data type}
+titanic_data <- titanic_data %>% 
+  mutate(survived = as.factor(survived), 
+         pclass = as.factor(pclass), 
+         sex = as.factor(sex),
+         embarked = as.factor(embarked)
+         )
+```
+
+In the embarked column, there are two entries with blank values. These are not counted as missing values by R, but are missing values for all intents and purposes, so we manually filter them out as follows
+
+```{r }
+titanic_data <- titanic_data %>%
+  filter(embarked != "")
+```
+
+The Cabin Column mostly contains blank values, as such we drop the column entirely as it will not offer any meaningful conclusions in our analysis
+
+```{r Drop the Cabin Column}
+titanic_data <- titanic_data %>% select(-cabin)
+```
+
+This is a final check of the data to ensure it has been sufficiently cleaned
+```{r Views the data after the multiple steps to clean it}
+head(titanic_data)
+```
+
+Now that the data has been cleaned, we write it to a new .csv file so that it can be exported and used for further analysis or visualisations on R or other programs.
+
+```{r Writes the current dataset onto a new .csv file}
+write.csv(titanic_data, "Cleaned_Titanic_Data.csv", row.names = FALSE)
+```
+
