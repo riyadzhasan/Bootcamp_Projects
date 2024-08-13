@@ -1,0 +1,1 @@
+This folder contains the related files for the Awesome Chocolates dataset - a mock dataset about a chocolates company containing sales data
