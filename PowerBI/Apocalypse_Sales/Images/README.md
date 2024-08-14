@@ -1,0 +1,1 @@
+This folder contains image files to be used for embedded images
